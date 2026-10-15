@@ -1,0 +1,52 @@
+\documentclass{elsarticle}
+\usepackage{tikz}
+\usepackage{tikz-uml}
+% Puede haber muchos otros paquetes y no deben confundir
+
+\begin{document}
+	
+	% Es un documento LaTeX en el que puede aparecer texto que no debe engañar a flex
+	\texttt{tikzpicture}
+	\textit{umlclass[type=interface, x=0, y=4]}
+	\textbf{tikzpicture}
+	
+
+	% Aquí empezaremos a procesar
+		\begin{tikzpicture}
+		
+		\begin{umlpackage}{MyPackage}
+		
+			\umlclass[type=interface, x=0, y=4]{PaymentStrategy}	{	}	{
+				void pay(float amount)}
+			
+			\umlclass[x=0, y=10]{Order}{
+				- orderId : string\\
+				- totalAmount : float }{ 
+				+ addProduct(p : Product) : void \\
+				+ processPayment(s : PaymentStrategy) : void
+			}
+			
+			\umlclass[x=-10, y=10]{Product}{
+				- name : string \\
+				- price : float}
+				{+ getPrice() : float}{}
+			
+			\umlclass[x=-10, y=15]{CreditCardPayment}{}
+			{	- cardNumber : string\\
+				+ pay(amount : float) : void
+			}
+			
+			\umlclass[x=-10, y=5]{PayPalPayment}
+			{	- email : string}{				+ pay(amount : float) : void			}
+			
+			% Relaciones
+			
+			\umlrelationship[type=composition, arg1=1, arg2=1..*, pos1=0.2, pos2=0.8]{Order}{Product}
+			\umlrelationship[type=dependency, arg=uses, pos=0.5]{Order}{PaymentStrategy}
+			\umlrelationship[type=implementation]{CreditCardPayment}{PaymentStrategy}
+			\umlrelationship[type=implementation]{PayPalPayment}{PaymentStrategy}
+		\end{umlpackage}
+			
+		\end{tikzpicture}
+	
+\end{document}

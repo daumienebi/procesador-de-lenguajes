@@ -1,0 +1,47 @@
+//Hacer un programa que cuente el número de líneas con menos de:
+//	a) 30 caracteres
+//	b) 30 letras
+
+options {
+    //DEBUG_TOKEN_MANAGER = true;
+    IGNORE_CASE = false;
+}
+
+PARSER_BEGIN(Ej1)
+
+public class Ej1 {
+    public static void main(String args[]) throws ParseException {
+        Token tk;
+        Ej1TokenManager tkmngr = new Ej1TokenManager( new SimpleCharStream(System.in) );
+        try {
+            while ( (tk = tkmngr.getNextToken()).kind != EOF );
+        } catch (TokenMgrError x) {
+            System.out.println("Exiting.");
+            throw x;
+        }
+    }
+}
+
+PARSER_END(Ej1)
+
+TOKEN :
+{
+     <EOL: "\n" >      {System.out.print("<lf>");System.out.flush();}
+|    <LINEA: ~["\n"]>   {
+                          if(lengthOfMatch < 30){
+                            numero_lineas_con_menos_30_caracteres++;
+                          }
+                        }
+//|   <CARACTER: ["a-zA-Z]"]> {}
+|    <ANYTHING: ~[]>    {System.out.println(image.toString());}
+}
+
+
+TOKEN_MGR_DECLS:
+{
+    int numero_lineas_con_menos_30_caracteres = 0;
+    int numero_lineas_con_menos_30_letras = 0;
+}
+
+
+

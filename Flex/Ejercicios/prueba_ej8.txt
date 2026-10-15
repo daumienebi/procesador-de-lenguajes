@@ -1,0 +1,11 @@
+4.594005
+Hola esto es una linea sin punto flotante
+4.5
+jkdfijdfkldf
+6.7
+jdfjdsfjkdj 8.9 kjkfkjdhfj 56.86995
+848.000
+6.0
+0.9
+hola.74738
+fin de fichero 0.8 10

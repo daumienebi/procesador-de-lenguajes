@@ -1,0 +1,211 @@
+Enunciado provisional de la primera práctica.
+
+Usando flex crear un programa para procesar diagramas de clases de 
+un documento LaTeX: TikZ-UML.
+
+Realizando las operaciones necesarias para que al finalizar el 
+procesado permita mostrar las siguientes estadísticas:
+- el número de paquetes.
+- el número de relaciones (sin importar si son de tipo herencia, 
+  asociación...)
+- el número clases: indicando cuántas de ellas son interfaces y plantillas.
+- la clase con mayor número de métodos.
+
+Los comentarios deberán ser ignorados así como el resto de sentencias
+del documento LaTeX donde se encuentre el diagrama. Solo deberá tener 
+en cuenta los diagramas de clases.
+
+Se valorará el uso de definiciones regulares, correcto uso de
+las expresiones regulares, calidad del código, etc.
+
+El analizador debe ser capaz de analizar tanto la entrada estándar 
+como un fichero de texto que reciba como argumento.
+
+No se permite utilizar sscanf, strstr (o similares) para realizar 
+análisis léxico en el código C: todo el procesamiento léxico deberá 
+ser realizado con Flex.
+
+------------------------------------------------------------------
+
+Ante una entrada como la siguiente.
+
+\documentclass{article}
+\usepackage{tikz}
+\usepackage{tikz-uml}
+
+\begin{document}
+	% No dejarse engañar por esto \begin{tikzpicture}
+	% O esto \begin{umlclass}
+	
+	\begin{center}
+		\begin{tikzpicture}
+		% Definir dos clases
+		\umlclass[text=red]{A}{
+			int a1 \\
+			float a2
+		}
+		{
+			void m1()\\int m2(int)
+		}
+		
+		\umlclass[y=-4]{B}{
+			string b1}
+		{
+			void m3()
+		}
+	
+		% Definir una asociación
+		\umlrelationship	[type=association]{A}{B}
+		\end{tikzpicture}
+	\end{center}
+	
+\end{document}
+
+ Debería devolver:
+ - El número de paquetes es 0.
+ - El número de relaciones es: 1.
+ - El número de clases es: 2 (0 interfaces y 0 plantillas).
+ - La clase con mayor número de métodos es "A" con 2 métodos.
+
+
+
+
+Ante una entrada como la siguiente:
+
+\documentclass{letter}
+\usepackage{tikz}
+\usepackage{tikz-uml}
+% Puede haber muchos otros paquetes y no deben confundir
+
+\begin{document}
+	
+	\begin{tikzpicture}
+	% Paquete main
+	\begin{umlpackage}{main}
+	
+		% Paquete pck1
+		\begin{umlpackage}{pck1}
+			\umlclass[template=T]{A}{
+				n : uint \\ t : float
+			}{}
+			\umlclass[y=-3]{B}{
+				c : char
+			}{
+				setB(b : B) : void \\ getB() : B
+			}
+		\end{umlpackage}
+			
+		% Nuevo paquete pck2
+		\begin{umlpackage}[x=10, y=-6]{pck2}
+			% Clase en el paquete
+			\umlclass[type=interface]
+			{C}{
+				n : uint \\ s : string
+				m : float
+			}
+			{	}
+        % No tiene métodos
+		\end{umlpackage}
+
+		\end{umlpackage}
+		
+		% Nueva clase D
+		\umlclass[x=2, y=-10]{D}{
+			n : uint
+		}	{	#function(c:char):void	}
+		
+		% Las relaciones a partir de aquí
+		\umlrelationship[type=association, geometry=-|-, 
+		arg1=tata, 
+		mult1=*, 
+		pos1=0.3, 
+		arg2=toto, 
+		mult2=1, 
+		pos2=2.9, 
+		align2=left]{C}{B} % Asociación B - C
+		
+		% Composición D <>-> C
+		\umlrelationship[type={unidirectional composition},geometry=-|, arg=titi, mult=*, pos=1.7, stereo=vector]{D}{C}
+		
+		% Entre paquetes sp1 y sp2
+		\umlrelationship[type=import,geometry=|-, anchors=90 and 50]{pck2}{pck1}
+		
+		% Agregación D <>- D
+		\umlrelationship[type= aggregation, arg=tutu, mult=1, pos=0.8, angle1=30, angle2=60, loopsize=2cm]{D}{D}
+		
+		% Herencia B <|- D
+		\umlrelationship[type=inheritance,geometry=-|]{D}{B}
+
+	\end{tikzpicture}
+	
+\end{document}
+
+ Debería devolver:
+ - El número de paquetes es 3.
+ - El número de relaciones es: 5.
+ - El número de clases es: 4 (1 interfaces y 1 plantillas).
+ - La clase con mayor número de métodos es "B" con 2 métodos.
+
+
+
+
+Ante una entrada como la siguiente:
+
+\documentclass{elsarticle}
+\usepackage{tikz}
+\usepackage{tikz-uml}
+% Puede haber muchos otros paquetes y no deben confundir
+
+\begin{document}
+	
+	% Es un documento LaTeX en el que puede aparecer texto que no debe engañar a flex
+	\texttt{tikzpicture}
+	\textit{umlclass[type=interface, x=0, y=4]}
+	\textbf{tikzpicture}
+	
+
+	% Aquí empezaremos a procesar
+		\begin{tikzpicture}
+		
+		\begin{umlpackage}{MyPackage}
+		
+			\umlclass[type=interface, x=0, y=4]{PaymentStrategy}	{	}	{
+				void pay(float amount)}
+			
+			\umlclass[x=0, y=10]{Order}{
+				- orderId : string\\
+				- totalAmount : float }{ 
+				+ addProduct(p : Product) : void \\
+				+ processPayment(s : PaymentStrategy) : void
+			}
+			
+			\umlclass[x=-10, y=10]{Product}{
+				- name : string \\
+				- price : float}
+				{+ getPrice() : float}{}
+			
+			\umlclass[x=-10, y=15]{CreditCardPayment}{}
+			{	- cardNumber : string\\
+				+ pay(amount : float) : void
+			}
+			
+			\umlclass[x=-10, y=5]{PayPalPayment}
+			{	- email : string}{				+ pay(amount : float) : void			}
+			
+			% Relaciones
+			
+			\umlrelationship[type=composition, arg1=1, arg2=1..*, pos1=0.2, pos2=0.8]{Order}{Product}
+			\umlrelationship[type=dependency, arg=uses, pos=0.5]{Order}{PaymentStrategy}
+			\umlrelationship[type=implementation]{CreditCardPayment}{PaymentStrategy}
+			\umlrelationship[type=implementation]{PayPalPayment}{PaymentStrategy}
+		\end{umlpackage}
+			
+		\end{tikzpicture}
+	
+\end{document}
+
+ Debería devolver:
+ - El número de paquetes es 1.
+ - El número de relaciones es: 4.
+ - El número de clases es: 5 (1 interfaces y 0 plantillas).
+ - La clase con mayor número de métodos es "Order" con 2 métodos.
