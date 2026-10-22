@@ -1,0 +1,24 @@
+PARSER_BEGIN(Compilador)
+
+public class Compilador {
+    public static void main (String[] args) throws Exception {
+	Compilador parser = new Compilador (System.in);
+	System.out.println (parser.parse ());
+    }
+}
+
+PARSER_END(Compilador)
+
+SKIP :
+{
+    " " | "\t" | "\n" | "\r"
+}
+
+TOKEN :
+{
+  < NUM: ( ["0"-"9"] )+ >
+| < ID : (["a"-"z","A"-"Z"])+>
+}
+
+
+
