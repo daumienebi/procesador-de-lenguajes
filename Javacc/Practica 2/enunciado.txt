@@ -1,0 +1,284 @@
+Se trata de utilizar JavaCC para obtener un compilador que traduzca un
+lenguaje de alto nivel a código de máquina de pila abstracta. Básicamente
+lo mismo que hace el analizador recursivo descendente en C explicado en clase.
+
+El lenguaje de alto nivel es muy sencillo. No tiene declaración de tipos y
+el único tipo que permite es el tipo entero. En las condiciones de los
+condicionales y bucles el valor 0 se interpreta como falso y cualquier otro
+valor como verdadero.
+
+Los comentarios son en línea comenzando con los carácteres '^^', y multilínea
+entre ('^.' y '.^'). Se valorará el uso de expresiones regulares simples para
+la identificación de los comentarios.
+
+El terminal 'NUM' representa un número entero positivo e 'ID' un
+identificador/variable del lenguaje. Los identificadores pueden estar
+formados por letras y números (pero no pueden comenzar por número).
+Las palabras reservadas son en minúsculas y están entre apóstrofos.
+
+Debe ser capaz de leer por entrada estándar (teclado) y por un fichero que se
+le suministre por argumento.
+
+
+La gramática del lenguaje es la siguiente:
+
+Antecedente: Programa
+Consecuente: una o más Sentencia
+
+Antecedente: Sentencia
+Consecuente: Asigna
+          o: Condicional
+          o: Bucle
+          o: Bloque
+
+Antecedente: Bloque
+Consecuente: 'inicio' una o más Sentencia 'fin'
+
+Antecedente: Asigna
+Consecuente: 'asignar' Expr ':>'  ID
+          o: 'asignar' Expr ':+>' ID
+          o: 'asignar' Expr ':->' ID
+
+Antecedente: Condicional
+Consecuente: 'si' Expr Bloque ElseRep
+          o: 'si' Expr Bloque
+
+Antecedente: ElseRep
+Consecuente: 'sino' Bloque
+          o: 'sinosi' Expr Bloque ElseRep
+
+Antecedente: Bucle
+Consecuente: 'bucle' Bloque 'mientras' Expr
+
+Antecedente: Expr
+Consecuente: Mexpr '+' Expr
+          o: Mexpr '-' Expr
+          o: Mexpr
+
+Antecedente: Mexpr
+Consecuente: Valor '/' Mexpr
+          o: Valor '*' Mexpr
+          o: Valor
+
+Antecedente: Valor
+Consecuente: ID
+          o: NUM
+          o: '(' Expr ')'
+
+NOTA: Puede ser necesaria alguna transformación en la la gramática (eliminación
+      de recursividad, factorización...) antes de empezar a programar en JavaCC.
+      De hecho, la transformación también podría ser la utilización de los
+      operadores avanzados de JavaCC, como: '?', '*'...
+      La gramática codificada debe ser LL(1), es decir, NO se permite utilizar
+      LOOKAHEAD.
+
+
+Ante una entrada como:
+
+^^ Inicio programa
+asignar (6+7 + 8) :> var    ^^ Asignación var := 6+7+8
+si (var - 100)              ^^ Evaluar condición
+inicio
+    asignar var + 10 :+> x  ^^ x := x + var + 10
+fin
+sino inicio
+    asignar 0 :> x          ^^ x := 0
+fin
+                            ^^ Fin del condicional
+asignar (1-0-1+2)* x - (i) :> vAriAble
+^^ Fin del programa
+
+Debería mostrar (excepto quizá el número de las etiquetas o el orden de
+algunos operadores como sum, sub...):
+
+	valori var
+	mete 6
+	mete 7
+	sum
+	mete 8
+	sum
+	asigna
+	valord var
+	mete 100
+	sub
+	sifalsovea LBL0
+	valori x
+	valord x
+	valord var
+	mete 10
+	sum
+	sum
+	asigna
+	vea LBL1
+LBL0
+	valori x
+	mete 0
+	asigna
+LBL1
+	valori vAriAble
+	mete 1
+	mete 0
+	sub
+	mete 1
+	sub
+	mete 2
+	sum
+	valord x
+	mul
+	valord i
+	sub
+	asigna
+
+
+
+Ante una entrada como:
+asignar 10 :> miVar
+bucle inicio
+    asignar x + y + 1 :+> miVar
+fin mientras ( evaluacion )
+
+si (x - y) inicio asignar 100 :> aba fin
+
+asignar 0 :> var0
+
+si otraVariable - 7
+inicio
+    asignar 1 :> x
+    asignar 2 :> y
+fin
+sino
+inicio
+    asignar 100 :> ax
+    asignar 200 :> ay
+fin
+
+
+
+Debería mostrar (excepto quizá el número de las etiquetas o el orden de
+algunos operadores como sum, sub...):
+
+	valori miVar
+	mete 10
+	asigna
+LBL0
+	valori miVar
+	valord miVar
+	valord x
+	valord y
+	sum
+	mete 1
+	sum
+	sum
+	asigna
+	siciertovea LBL0
+	valord x
+	valord y
+	sub
+	sifalsovea LBL1
+	valori aba
+	mete 100
+	asigna
+LBL1
+	valori var0
+	mete 0
+	asigna
+	valord otraVariable
+	mete 7
+	sub
+	sifalsovea LBL2
+	valori x
+	mete 1
+	asigna
+	valori y
+	mete 2
+	asigna
+	vea LBL3
+LBL2
+	valori ax
+	mete 100
+	asigna
+	valori ay
+	mete 200
+	asigna
+LBL3
+
+
+
+Ante una entrada como:
+^. Ejemplo de un bucle anidado:
+   - El primero es un bucle infinito que inicializa var1, var2 y var3 e imprime var1
+   - El segundo se repite mientras var1-var2 y actualiza var1 incrementándole con var2
+.^
+bucle
+inicio
+    asignar 10 :> var1
+    asignar 20 :> var2
+    asignar 30 :> var3
+
+    bucle inicio
+        asignar 50 :+> var5
+    fin mientras (var1-var3)
+
+    asignar 100 :> var10
+fin
+mientras 1
+
+^. Ejemplo de if - elseif: ojo puede llevar else final o no .^
+
+si (20) inicio
+    asignar 1 :> numCoches
+fin sinosi 30 inicio
+    asignar 2 :> numCamiones
+fin sino inicio
+    asignar 3 :> numMotocicletas
+fin
+
+^^ Fin del ejemplo
+
+
+Debería mostrar (excepto quizá el número de las etiquetas o el orden de
+algunos operadores como sum, sub...):
+
+LBL0
+	valori var1
+	mete 10
+	asigna
+	valori var2
+	mete 20
+	asigna
+	valori var3
+	mete 30
+	asigna
+LBL1
+	valori var5
+	valord var5
+	mete 50
+	sum
+	asigna
+	valord var1
+	valord var3
+	sub
+	siciertovea LBL1
+	valori var10
+	mete 100
+	asigna
+	mete 1
+	siciertovea LBL0
+	mete 20
+	sifalsovea LBL2
+	valori numCoches
+	mete 1
+	asigna
+	vea LBL3
+LBL2
+	mete 30
+	sifalsovea LBL4
+	valori numCamiones
+	mete 2
+	asigna
+	vea LBL3
+LBL4
+	valori numMotocicletas
+	mete 3
+	asigna
+LBL3

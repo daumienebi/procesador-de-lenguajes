@@ -1,0 +1,142 @@
+PARSER_BEGIN(MiniCompilador)
+import java.io.FileInputStream;
+import java.io.InputStream;
+public class MiniCompilador {
+    public static void main(String args []) {
+            InputStream input;
+            try {
+                if (args.length > 0) {
+                    // Si hay argumento: lee del fichero
+                    input = new FileInputStream(args[0]);
+                } else {
+                    input = System.in;
+                }
+                MiniCompilador parser = new MiniCompilador(input);
+                parser.Programa(); // inicio de nuestro analisis
+            } catch (java.io.FileNotFoundException e) {
+                System.out.println("Error: No se ha encontrado el fichero "+ args[0]);
+            } catch (ParseException e) {
+                     System.out.println("Error de sintaxis: " + e.getMessage());
+            }
+        }
+}
+PARSER_END(MiniCompilador)
+
+//En el bloque SKIP irán los caracteres que no queremos procesar
+SKIP :
+{
+    " " | "\t" | "\n" | "\r"
+|   <comentarioLinea : "^^" (~["\n"])* >
+|   <comentarioMultilinea : "^." (~["."] | "." ~["^"]) ".^" >
+}
+
+TOKEN: /* Los operadores */
+{
+    < MAS: "+" >
+|   < MENOS: "-" >
+|   < MULTIPLICACION: "*" >
+|   < DIVIDIR: "/" >
+}
+
+// Los tokenes de asignacion
+TOKEN:
+{
+    <IGUAL : ":>" >
+|   <MAS_IGUAL : ":+>" >
+|   <MENOS_IGUAL :":->" >
+}
+
+// Palabras reservadas
+TOKEN :
+{
+    <SI : "si" >
+|   <SINO : "sino">
+|   <SINOSI : "sinosi">
+|   <BUCLE : "bucle">
+|   <MIENTRAS : "mientras">
+|   <INICIO : "inicio">
+|   <FIN : "fin">
+|   <ASIGNAR : "asignar">
+}
+
+// Los simbolos
+TOKEN :
+{
+    <PAREN_A : "(" >
+|   <PAREN_C : ")" >
+}
+
+// Los identificadores
+// Los identificadores tienen que estar aqui abajo, despues de las palabras reservadas etc..
+// Por que si no, se van a reconocer todas las palabras reservadas como <ID>
+// Recordamos que cuando javacc puede interpretar dos exp. reg. se queda con la que aparezca antes
+// en las definiciones de las exp. reg. Entonce ponemos los identificadores aqui abajo para no interferir.
+TOKEN :
+{
+  < NUM: ( ["0"-"9"] )+ >
+| < ID : (["a"-"z","A"-"Z"] (["a"-"z","A"-"Z"] | ["0"-"9"])* )+>
+}
+
+// Despues de los tokens, defino las reglas de producciones
+void Programa():
+{}
+{
+    ( Sentencia() )+
+}
+
+void Sentencia():{}
+{
+    Asigna()
+|   Condicional()
+|   Bucle()
+|   Bloque()
+}
+
+//Factorizado por la ambigüedad de la parte <ASIGNAR> Expr()
+void Asigna():{}
+{
+    <ASIGNAR> Expr() ( <IGUAL> <ID> | <MAS_IGUAL> <ID> | <MENOS_IGUAL> <ID>)
+}
+
+//Factorizado por la ambigüedad de la parte <SI> Expr()
+void Condicional():{}
+{
+    // Que sentido tiene esto?
+    <SI> Expr() Bloque()( ElseRep() | Bloque())
+}
+
+void Bucle():{}
+{
+    <BUCLE> Bloque() <MIENTRAS> Expr()
+}
+
+void Bloque():{}
+{
+    <INICIO> ( Sentencia() )+ <FIN>
+}
+
+void Expr(): {}
+{
+    Mexpr() ( <MAS> Expr() | <MENOS> Expr())
+    //Mexpr() ( <MAS> Expr() | <MENOS> Expr()) | Mexpr()
+}
+
+// Este Mexpr sirve para diferenciar entre la expresión normal y esta que
+// incluye las multiplicaciones y divisiones
+void Mexpr(): {}
+{
+    Valor() ( <DIVIDIR> Mexpr() | <MULTIPLICACION> Mexpr())
+}
+
+void ElseRep():{}
+{
+    <SINO> Bloque()
+|   <SINOSI> Expr() Bloque() ElseRep()
+}
+
+void Valor(): {}
+{
+    <ID>
+|   <NUM>
+|   <PAREN_A> Expr() <PAREN_C>
+}
