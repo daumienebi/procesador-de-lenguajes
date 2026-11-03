@@ -27,7 +27,7 @@ SKIP :
 {
     " " | "\t" | "\n" | "\r"
 |   <comentarioLinea : "^^" (~["\n"])* >
-|   <comentarioMultilinea : "^." (~["."] | "." ~["^"]) ".^" >
+|   <comentarioMultilinea : "^." (~["."] | "." ~["^"])* ".^" >
 }
 
 TOKEN: /* Los operadores */

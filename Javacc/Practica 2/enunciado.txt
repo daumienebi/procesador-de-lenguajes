@@ -170,6 +170,7 @@ LBL0
 	sum
 	sum
 	asigna
+	valord evaluacion
 	siciertovea LBL0
 	valord x
 	valord y
@@ -201,7 +202,6 @@ LBL2
 	mete 200
 	asigna
 LBL3
-
 
 
 Ante una entrada como:

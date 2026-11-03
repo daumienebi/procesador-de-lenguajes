@@ -1,29 +1,12 @@
-^. Ejemplo de un bucle anidado:
-   - El primero es un bucle infinito que inicializa var1, var2 y var3 e imprime var1
-   - El segundo se repite mientras var1-var2 y actualiza var1 incrementándole con var2
-.^
-bucle
+^^ Inicio programa
+asignar (6+7 + 8) :> var    ^^ Asignación var := 6+7+8
+si (var - 100)              ^^ Evaluar condición
 inicio
-    asignar 10 :> var1
-    asignar 20 :> var2
-    asignar 30 :> var3
-
-    bucle inicio
-        asignar 50 :+> var5
-    fin mientras (var1-var3)
-
-    asignar 100 :> var10
+    asignar var + 10 :+> x  ^^ x := x + var + 10
 fin
-mientras 1
-
-^. Ejemplo de if - elseif: ojo puede llevar else final o no .^
-
-si (20) inicio
-    asignar 1 :> numCoches
-fin sinosi 30 inicio
-    asignar 2 :> numCamiones
-fin sino inicio
-    asignar 3 :> numMotocicletas
+sino inicio
+    asignar 0 :> x          ^^ x := 0
 fin
-
-^^ Fin del ejemplo
+                            ^^ Fin del condicional
+asignar (1-0-1+2)* x - (i) :> vAriAble
+^^ Fin del programa
