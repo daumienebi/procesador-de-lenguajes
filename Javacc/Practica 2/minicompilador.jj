@@ -2,6 +2,13 @@ PARSER_BEGIN(MiniCompilador)
 import java.io.FileInputStream;
 import java.io.InputStream;
 public class MiniCompilador {
+
+    // Variable y metodo para gestionar las etiquetas
+    static private int nextNumber=0;
+    private static int getNextNumber() {
+        return ++nextNumber;
+    }
+
     public static void main(String args []) {
             InputStream input;
             try {
@@ -27,7 +34,19 @@ SKIP :
 {
     " " | "\t" | "\n" | "\r"
 |   <comentarioLinea : "^^" (~["\n"])* >
-|   <comentarioMultilinea : "^." (~["."] | "." ~["^"])* ".^" >
+}
+
+// Gestionamos los comentarios multilinea con condiciones de arranque
+
+SKIP :
+{
+    <INI_COM : "^."> {} : dentro_comentario
+}
+
+<dentro_comentario> SKIP:
+{
+    <FIN_COM : ".^"> {} : DEFAULT
+|   <CUALQUIER_COSA : ~[]> // no hacer nada ante cualquier caracter dentro del un comentario multilinea
 }
 
 TOKEN: /* Los operadores */
@@ -95,14 +114,17 @@ void Sentencia():{}
 //Factorizado por la ambigüedad de la parte <ASIGNAR> Expr()
 void Asigna():{}
 {
-    <ASIGNAR> Expr() ( <IGUAL> <ID> | <MAS_IGUAL> <ID> | <MENOS_IGUAL> <ID>)
+    <ASIGNAR> Expr() ( <IGUAL> | <MAS_IGUAL> | <MENOS_IGUAL> ) <ID>
 }
 
 //Factorizado por la ambigüedad de la parte <SI> Expr()
 void Condicional():{}
 {
     // Que sentido tiene esto?
-    <SI> Expr() Bloque()( ElseRep() | Bloque())
+    //<SI> Expr() Bloque()( ElseRep() | Bloque())
+
+    // Los [] indica que esa ultima parte podria no aparecer
+    <SI> Expr() Bloque() [ ElseRep() ]
 }
 
 void Bucle():{}
@@ -117,7 +139,9 @@ void Bloque():{}
 
 void Expr(): {}
 {
-    Mexpr() ( <MAS> Expr() | <MENOS> Expr())
+    Mexpr() [ <MAS> Expr() {System.out.println("\tsum");}
+    |         <MENOS> Expr() {System.out.println("\tsub");}
+            ]
     //Mexpr() ( <MAS> Expr() | <MENOS> Expr()) | Mexpr()
 }
 
@@ -125,7 +149,8 @@ void Expr(): {}
 // incluye las multiplicaciones y divisiones
 void Mexpr(): {}
 {
-    Valor() ( <DIVIDIR> Mexpr() | <MULTIPLICACION> Mexpr())
+    Valor() [ <DIVIDIR> Mexpr() {System.out.println("\tdiv");}
+    |         <MULTIPLICACION> Mexpr() {System.out.println("\tmul");}]
 }
 
 void ElseRep():{}
@@ -134,9 +159,11 @@ void ElseRep():{}
 |   <SINOSI> Expr() Bloque() ElseRep()
 }
 
-void Valor(): {}
+void Valor(): {
+    Token token;
+}
 {
-    <ID>
-|   <NUM>
+    token = <ID> {System.out.println("\tvalord " + token.image);}
+|   token = <NUM> {System.out.println("\tmete " + token.image);}
 |   <PAREN_A> Expr() <PAREN_C>
 }

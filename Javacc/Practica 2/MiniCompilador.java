@@ -3,6 +3,13 @@
 import java.io.FileInputStream;
 import java.io.InputStream;
 public class MiniCompilador implements MiniCompiladorConstants {
+
+    // Variable y metodo para gestionar las etiquetas
+    static private int nextNumber=0;
+    private static int getNextNumber() {
+        return ++nextNumber;
+    }
+
     public static void main(String args []) {
             InputStream input;
             try {
@@ -73,17 +80,14 @@ public class MiniCompilador implements MiniCompiladorConstants {
     switch ((jj_ntk==-1)?jj_ntk_f():jj_ntk) {
     case IGUAL:{
       jj_consume_token(IGUAL);
-      jj_consume_token(ID);
       break;
       }
     case MAS_IGUAL:{
       jj_consume_token(MAS_IGUAL);
-      jj_consume_token(ID);
       break;
       }
     case MENOS_IGUAL:{
       jj_consume_token(MENOS_IGUAL);
-      jj_consume_token(ID);
       break;
       }
     default:
@@ -91,6 +95,7 @@ public class MiniCompilador implements MiniCompiladorConstants {
       jj_consume_token(-1);
       throw new ParseException();
     }
+    jj_consume_token(ID);
 }
 
 //Factorizado por la ambigüedad de la parte <SI> Expr()
@@ -104,14 +109,9 @@ public class MiniCompilador implements MiniCompiladorConstants {
       ElseRep();
       break;
       }
-    case INICIO:{
-      Bloque();
-      break;
-      }
     default:
       jj_la1[3] = jj_gen;
-      jj_consume_token(-1);
-      throw new ParseException();
+      ;
     }
 }
 
@@ -146,20 +146,29 @@ public class MiniCompilador implements MiniCompiladorConstants {
   static final public void Expr() throws ParseException {
     Mexpr();
     switch ((jj_ntk==-1)?jj_ntk_f():jj_ntk) {
-    case MAS:{
-      jj_consume_token(MAS);
-      Expr();
-      break;
-      }
+    case MAS:
     case MENOS:{
-      jj_consume_token(MENOS);
-      Expr();
+      switch ((jj_ntk==-1)?jj_ntk_f():jj_ntk) {
+      case MAS:{
+        jj_consume_token(MAS);
+        Expr();
+        break;
+        }
+      case MENOS:{
+        jj_consume_token(MENOS);
+        Expr();
+        break;
+        }
+      default:
+        jj_la1[5] = jj_gen;
+        jj_consume_token(-1);
+        throw new ParseException();
+      }
       break;
       }
     default:
-      jj_la1[5] = jj_gen;
-      jj_consume_token(-1);
-      throw new ParseException();
+      jj_la1[6] = jj_gen;
+      ;
     }
 }
 
@@ -168,20 +177,29 @@ public class MiniCompilador implements MiniCompiladorConstants {
   static final public void Mexpr() throws ParseException {
     Valor();
     switch ((jj_ntk==-1)?jj_ntk_f():jj_ntk) {
+    case MULTIPLICACION:
     case DIVIDIR:{
-      jj_consume_token(DIVIDIR);
-      Mexpr();
-      break;
+      switch ((jj_ntk==-1)?jj_ntk_f():jj_ntk) {
+      case DIVIDIR:{
+        jj_consume_token(DIVIDIR);
+        Mexpr();
+        break;
+        }
+      case MULTIPLICACION:{
+        jj_consume_token(MULTIPLICACION);
+        Mexpr();
+        break;
+        }
+      default:
+        jj_la1[7] = jj_gen;
+        jj_consume_token(-1);
+        throw new ParseException();
       }
-    case MULTIPLICACION:{
-      jj_consume_token(MULTIPLICACION);
-      Mexpr();
       break;
       }
     default:
-      jj_la1[6] = jj_gen;
-      jj_consume_token(-1);
-      throw new ParseException();
+      jj_la1[8] = jj_gen;
+      ;
     }
 }
 
@@ -200,7 +218,7 @@ public class MiniCompilador implements MiniCompiladorConstants {
       break;
       }
     default:
-      jj_la1[7] = jj_gen;
+      jj_la1[9] = jj_gen;
       jj_consume_token(-1);
       throw new ParseException();
     }
@@ -223,7 +241,7 @@ public class MiniCompilador implements MiniCompiladorConstants {
       break;
       }
     default:
-      jj_la1[8] = jj_gen;
+      jj_la1[10] = jj_gen;
       jj_consume_token(-1);
       throw new ParseException();
     }
@@ -239,13 +257,13 @@ public class MiniCompilador implements MiniCompiladorConstants {
   static public Token jj_nt;
   static private int jj_ntk;
   static private int jj_gen;
-  static final private int[] jj_la1 = new int[9];
+  static final private int[] jj_la1 = new int[11];
   static private int[] jj_la1_0;
   static {
 	   jj_la1_init_0();
 	}
 	private static void jj_la1_init_0() {
-	   jj_la1_0 = new int[] {0x2a4000,0x2a4000,0x3800,0x98000,0x2a4000,0x180,0x600,0x18000,0x3400000,};
+	   jj_la1_0 = new int[] {0xa90000,0xa90000,0xe000,0x60000,0xa90000,0x600,0x600,0x1800,0x1800,0x60000,0xd000000,};
 	}
 
   /** Constructor with InputStream. */
@@ -266,7 +284,7 @@ public class MiniCompilador implements MiniCompiladorConstants {
 	 token = new Token();
 	 jj_ntk = -1;
 	 jj_gen = 0;
-	 for (int i = 0; i < 9; i++) jj_la1[i] = -1;
+	 for (int i = 0; i < 11; i++) jj_la1[i] = -1;
   }
 
   /** Reinitialise. */
@@ -280,7 +298,7 @@ public class MiniCompilador implements MiniCompiladorConstants {
 	 token = new Token();
 	 jj_ntk = -1;
 	 jj_gen = 0;
-	 for (int i = 0; i < 9; i++) jj_la1[i] = -1;
+	 for (int i = 0; i < 11; i++) jj_la1[i] = -1;
   }
 
   /** Constructor. */
@@ -297,7 +315,7 @@ public class MiniCompilador implements MiniCompiladorConstants {
 	 token = new Token();
 	 jj_ntk = -1;
 	 jj_gen = 0;
-	 for (int i = 0; i < 9; i++) jj_la1[i] = -1;
+	 for (int i = 0; i < 11; i++) jj_la1[i] = -1;
   }
 
   /** Reinitialise. */
@@ -315,7 +333,7 @@ public class MiniCompilador implements MiniCompiladorConstants {
 	 token = new Token();
 	 jj_ntk = -1;
 	 jj_gen = 0;
-	 for (int i = 0; i < 9; i++) jj_la1[i] = -1;
+	 for (int i = 0; i < 11; i++) jj_la1[i] = -1;
   }
 
   /** Constructor with generated Token Manager. */
@@ -331,7 +349,7 @@ public class MiniCompilador implements MiniCompiladorConstants {
 	 token = new Token();
 	 jj_ntk = -1;
 	 jj_gen = 0;
-	 for (int i = 0; i < 9; i++) jj_la1[i] = -1;
+	 for (int i = 0; i < 11; i++) jj_la1[i] = -1;
   }
 
   /** Reinitialise. */
@@ -340,7 +358,7 @@ public class MiniCompilador implements MiniCompiladorConstants {
 	 token = new Token();
 	 jj_ntk = -1;
 	 jj_gen = 0;
-	 for (int i = 0; i < 9; i++) jj_la1[i] = -1;
+	 for (int i = 0; i < 11; i++) jj_la1[i] = -1;
   }
 
   static private Token jj_consume_token(int kind) throws ParseException {
@@ -391,12 +409,12 @@ public class MiniCompilador implements MiniCompiladorConstants {
   /** Generate ParseException. */
   static public ParseException generateParseException() {
 	 jj_expentries.clear();
-	 boolean[] la1tokens = new boolean[26];
+	 boolean[] la1tokens = new boolean[28];
 	 if (jj_kind >= 0) {
 	   la1tokens[jj_kind] = true;
 	   jj_kind = -1;
 	 }
-	 for (int i = 0; i < 9; i++) {
+	 for (int i = 0; i < 11; i++) {
 	   if (jj_la1[i] == jj_gen) {
 		 for (int j = 0; j < 32; j++) {
 		   if ((jj_la1_0[i] & (1<<j)) != 0) {
@@ -405,7 +423,7 @@ public class MiniCompilador implements MiniCompiladorConstants {
 		 }
 	   }
 	 }
-	 for (int i = 0; i < 26; i++) {
+	 for (int i = 0; i < 28; i++) {
 	   if (la1tokens[i]) {
 		 jj_expentry = new int[1];
 		 jj_expentry[0] = i;

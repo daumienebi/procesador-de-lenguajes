@@ -11,48 +11,54 @@ public interface MiniCompiladorConstants {
   /** RegularExpression Id. */
   int comentarioLinea = 5;
   /** RegularExpression Id. */
-  int comentarioMultilinea = 6;
+  int INI_COM = 6;
   /** RegularExpression Id. */
-  int MAS = 7;
+  int FIN_COM = 7;
   /** RegularExpression Id. */
-  int MENOS = 8;
+  int CUALQUIER_COSA = 8;
   /** RegularExpression Id. */
-  int MULTIPLICACION = 9;
+  int MAS = 9;
   /** RegularExpression Id. */
-  int DIVIDIR = 10;
+  int MENOS = 10;
   /** RegularExpression Id. */
-  int IGUAL = 11;
+  int MULTIPLICACION = 11;
   /** RegularExpression Id. */
-  int MAS_IGUAL = 12;
+  int DIVIDIR = 12;
   /** RegularExpression Id. */
-  int MENOS_IGUAL = 13;
+  int IGUAL = 13;
   /** RegularExpression Id. */
-  int SI = 14;
+  int MAS_IGUAL = 14;
   /** RegularExpression Id. */
-  int SINO = 15;
+  int MENOS_IGUAL = 15;
   /** RegularExpression Id. */
-  int SINOSI = 16;
+  int SI = 16;
   /** RegularExpression Id. */
-  int BUCLE = 17;
+  int SINO = 17;
   /** RegularExpression Id. */
-  int MIENTRAS = 18;
+  int SINOSI = 18;
   /** RegularExpression Id. */
-  int INICIO = 19;
+  int BUCLE = 19;
   /** RegularExpression Id. */
-  int FIN = 20;
+  int MIENTRAS = 20;
   /** RegularExpression Id. */
-  int ASIGNAR = 21;
+  int INICIO = 21;
   /** RegularExpression Id. */
-  int PAREN_A = 22;
+  int FIN = 22;
   /** RegularExpression Id. */
-  int PAREN_C = 23;
+  int ASIGNAR = 23;
   /** RegularExpression Id. */
-  int NUM = 24;
+  int PAREN_A = 24;
   /** RegularExpression Id. */
-  int ID = 25;
+  int PAREN_C = 25;
+  /** RegularExpression Id. */
+  int NUM = 26;
+  /** RegularExpression Id. */
+  int ID = 27;
 
   /** Lexical state. */
   int DEFAULT = 0;
+  /** Lexical state. */
+  int dentro_comentario = 1;
 
   /** Literal token values. */
   String[] tokenImage = {
@@ -62,7 +68,9 @@ public interface MiniCompiladorConstants {
     "\"\\n\"",
     "\"\\r\"",
     "<comentarioLinea>",
-    "<comentarioMultilinea>",
+    "\"^.\"",
+    "\".^\"",
+    "<CUALQUIER_COSA>",
     "\"+\"",
     "\"-\"",
     "\"*\"",
