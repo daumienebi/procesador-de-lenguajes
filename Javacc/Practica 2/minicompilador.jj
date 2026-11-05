@@ -3,8 +3,9 @@ import java.io.FileInputStream;
 import java.io.InputStream;
 public class MiniCompilador {
 
-    // Variable y metodo para gestionar las etiquetas
+    // Variable para contar las etiquetas
     static private int nextNumber=0;
+    // Metodo para gestionar las etiquetas
     private static int getNextNumber() {
         return ++nextNumber;
     }
@@ -112,9 +113,25 @@ void Sentencia():{}
 }
 
 //Factorizado por la ambigüedad de la parte <ASIGNAR> Expr()
-void Asigna():{}
+void Asigna():{
+    // Declaro tokenes para almacenar el tipo de operacion e id
+    Token tkTipoOp;
+    Token tkId;
+}
 {
-    <ASIGNAR> Expr() ( <IGUAL> | <MAS_IGUAL> | <MENOS_IGUAL> ) <ID>
+    <ASIGNAR> Expr() (tkTipoOp = <IGUAL>| tkTipoOp = <MAS_IGUAL> | tkTipoOp = <MENOS_IGUAL>)
+              tkId = <ID>
+              {
+                System.out.println("\tvalori" + tkId.image);
+
+                // Ahora pasamos a la parte de asignar
+                if(tkTipoOp.image.equals(":+>")){
+                    System.out.println("\tsum");
+                }else if(tkTipoOp.image.equals(":->")){
+                    System.out.println("\tsub");
+                }
+                System.out.println("\tasigna");
+              }
 }
 
 //Factorizado por la ambigüedad de la parte <SI> Expr()
@@ -160,10 +177,10 @@ void ElseRep():{}
 }
 
 void Valor(): {
-    Token token;
+    Token tk;
 }
 {
-    token = <ID> {System.out.println("\tvalord " + token.image);}
-|   token = <NUM> {System.out.println("\tmete " + token.image);}
+    tk = <ID> {System.out.println("\tvalord " + tk.image);}
+|   tk = <NUM> {System.out.println("\tmete " + tk.image);}
 |   <PAREN_A> Expr() <PAREN_C>
 }
