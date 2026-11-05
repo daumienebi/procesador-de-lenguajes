@@ -122,7 +122,7 @@ void Asigna():{
     <ASIGNAR> Expr() (tkTipoOp = <IGUAL>| tkTipoOp = <MAS_IGUAL> | tkTipoOp = <MENOS_IGUAL>)
               tkId = <ID>
               {
-                System.out.println("\tvalori" + tkId.image);
+                System.out.println("\tvalori " + tkId.image);
 
                 // Ahora pasamos a la parte de asignar
                 if(tkTipoOp.image.equals(":+>")){
@@ -135,18 +135,43 @@ void Asigna():{
 }
 
 //Factorizado por la ambigüedad de la parte <SI> Expr()
-void Condicional():{}
+void Condicional():
+{
+    int lblFalse = getNextNumber();
+    int lblFinal = getNextNumber(); // puede que no haya otra condicion entonces seria el mismo LBL
+    boolean existeElse = false;
+}
 {
     // Que sentido tiene esto?
     //<SI> Expr() Bloque()( ElseRep() | Bloque())
-
     // Los [] indica que esa ultima parte podria no aparecer
-    <SI> Expr() Bloque() [ ElseRep() ]
+    <SI> {System.out.println("\tsifalsovea LBL" + lblFalse);}
+    Expr() Bloque()
+    [
+
+    {System.out.println("\tvea LBL" + lblFinal);
+     System.out.println("LBL" + lblFalse);
+    }
+    ElseRep(lblFinal) {existeElse = true;}
+
+    ] {
+        // Si no hubo un else
+        if(!existeElse){
+            System.out.println("\tvea LBL" + lblFinal);
+        }else{
+            System.out.println("vea LBL" + lblFalse);
+        }
+    }
 }
 
-void Bucle():{}
+void Bucle():
 {
-    <BUCLE> Bloque() <MIENTRAS> Expr()
+    int lblInicio = getNextNumber();
+}
+{
+    <BUCLE> {System.out.println("LBL " + lblInicio);}
+    Bloque()
+    <MIENTRAS> Expr() {System.out.println("\tsiciertovea LBL" + lblInicio);}
 }
 
 void Bloque():{}
@@ -170,10 +195,18 @@ void Mexpr(): {}
     |         <MULTIPLICACION> Mexpr() {System.out.println("\tmul");}]
 }
 
-void ElseRep():{}
+void ElseRep(int lblFinal):
+{
+    int lblFalse = getNextNumber();
+}
 {
     <SINO> Bloque()
-|   <SINOSI> Expr() Bloque() ElseRep()
+|   <SINOSI> {System.out.println("\tsifalsovea LBL" + lblFalse);}
+    Expr() Bloque()
+    {System.out.println("\tvea LBL" + lblFinal);
+     System.out.println("LBL" + lblFalse);
+    }
+    [ ElseRep(lblFinal) ] // Puede no aparecer
 }
 
 void Valor(): {

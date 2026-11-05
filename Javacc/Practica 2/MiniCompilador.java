@@ -4,8 +4,9 @@ import java.io.FileInputStream;
 import java.io.InputStream;
 public class MiniCompilador implements MiniCompiladorConstants {
 
-    // Variable y metodo para gestionar las etiquetas
+    // Variable para contar las etiquetas
     static private int nextNumber=0;
+    // Metodo para gestionar las etiquetas
     private static int getNextNumber() {
         return ++nextNumber;
     }
@@ -74,20 +75,22 @@ public class MiniCompilador implements MiniCompiladorConstants {
 }
 
 //Factorizado por la ambigüedad de la parte <ASIGNAR> Expr()
-  static final public void Asigna() throws ParseException {
+  static final public void Asigna() throws ParseException {// Declaro tokenes para almacenar el tipo de operacion e id
+    Token tkTipoOp;
+    Token tkId;
     jj_consume_token(ASIGNAR);
     Expr();
     switch ((jj_ntk==-1)?jj_ntk_f():jj_ntk) {
     case IGUAL:{
-      jj_consume_token(IGUAL);
+      tkTipoOp = jj_consume_token(IGUAL);
       break;
       }
     case MAS_IGUAL:{
-      jj_consume_token(MAS_IGUAL);
+      tkTipoOp = jj_consume_token(MAS_IGUAL);
       break;
       }
     case MENOS_IGUAL:{
-      jj_consume_token(MENOS_IGUAL);
+      tkTipoOp = jj_consume_token(MENOS_IGUAL);
       break;
       }
     default:
@@ -95,31 +98,54 @@ public class MiniCompilador implements MiniCompiladorConstants {
       jj_consume_token(-1);
       throw new ParseException();
     }
-    jj_consume_token(ID);
+    tkId = jj_consume_token(ID);
+System.out.println("\tvalori" + tkId.image);
+
+                // Ahora pasamos a la parte de asignar
+                if(tkTipoOp.image.equals(":+>")){
+                    System.out.println("\tsum");
+                }else if(tkTipoOp.image.equals(":->")){
+                    System.out.println("\tsub");
+                }
+                System.out.println("\tasigna");
 }
 
 //Factorizado por la ambigüedad de la parte <SI> Expr()
-  static final public void Condicional() throws ParseException {
+  static final public void Condicional() throws ParseException {int lblFalse = getNextNumber();
+    int lblFinal = getNextNumber(); // puede que no haya otra condicion entonces seria el mismo LBL
+    boolean existeElse = false;
     jj_consume_token(SI);
+System.out.println("\tsifalsovea LBL" + lblFalse);
     Expr();
     Bloque();
     switch ((jj_ntk==-1)?jj_ntk_f():jj_ntk) {
     case SINO:
     case SINOSI:{
-      ElseRep();
+System.out.println("\tvea LBL" + lblFinal);
+     System.out.println("LBL" + lblFalse);
+      ElseRep(lblFinal);
+existeElse = true;
       break;
       }
     default:
       jj_la1[3] = jj_gen;
       ;
     }
+// Si no hubo un else
+        if(!existeElse){
+            System.out.println("\tvea LBL" + lblFinal);
+        }else{
+            System.out.println("vea LBL" + lblFalse);
+        }
 }
 
-  static final public void Bucle() throws ParseException {
+  static final public void Bucle() throws ParseException {int lblInicio = getNextNumber();
     jj_consume_token(BUCLE);
+System.out.println("LBL " + lblInicio);
     Bloque();
     jj_consume_token(MIENTRAS);
     Expr();
+System.out.println("\tsiciertovea LBL" + lblInicio);
 }
 
   static final public void Bloque() throws ParseException {
@@ -152,11 +178,13 @@ public class MiniCompilador implements MiniCompiladorConstants {
       case MAS:{
         jj_consume_token(MAS);
         Expr();
+System.out.println("\tsum");
         break;
         }
       case MENOS:{
         jj_consume_token(MENOS);
         Expr();
+System.out.println("\tsub");
         break;
         }
       default:
@@ -183,11 +211,13 @@ public class MiniCompilador implements MiniCompiladorConstants {
       case DIVIDIR:{
         jj_consume_token(DIVIDIR);
         Mexpr();
+System.out.println("\tdiv");
         break;
         }
       case MULTIPLICACION:{
         jj_consume_token(MULTIPLICACION);
         Mexpr();
+System.out.println("\tmul");
         break;
         }
       default:
@@ -203,7 +233,7 @@ public class MiniCompilador implements MiniCompiladorConstants {
     }
 }
 
-  static final public void ElseRep() throws ParseException {
+  static final public void ElseRep(int lblFinal) throws ParseException {int lblFalse = getNextNumber();
     switch ((jj_ntk==-1)?jj_ntk_f():jj_ntk) {
     case SINO:{
       jj_consume_token(SINO);
@@ -212,26 +242,40 @@ public class MiniCompilador implements MiniCompiladorConstants {
       }
     case SINOSI:{
       jj_consume_token(SINOSI);
+System.out.println("\tsifalsovea LBL" + lblFalse);
       Expr();
       Bloque();
-      ElseRep();
+System.out.println("\tvea LBL" + lblFinal);
+     System.out.println("LBL" + lblFalse);
+      switch ((jj_ntk==-1)?jj_ntk_f():jj_ntk) {
+      case SINO:
+      case SINOSI:{
+        ElseRep(lblFinal);
+        break;
+        }
+      default:
+        jj_la1[9] = jj_gen;
+        ;
+      }
       break;
       }
     default:
-      jj_la1[9] = jj_gen;
+      jj_la1[10] = jj_gen;
       jj_consume_token(-1);
       throw new ParseException();
     }
 }
 
-  static final public void Valor() throws ParseException {
+  static final public void Valor() throws ParseException {Token tk;
     switch ((jj_ntk==-1)?jj_ntk_f():jj_ntk) {
     case ID:{
-      jj_consume_token(ID);
+      tk = jj_consume_token(ID);
+System.out.println("\tvalord " + tk.image);
       break;
       }
     case NUM:{
-      jj_consume_token(NUM);
+      tk = jj_consume_token(NUM);
+System.out.println("\tmete " + tk.image);
       break;
       }
     case PAREN_A:{
@@ -241,7 +285,7 @@ public class MiniCompilador implements MiniCompiladorConstants {
       break;
       }
     default:
-      jj_la1[10] = jj_gen;
+      jj_la1[11] = jj_gen;
       jj_consume_token(-1);
       throw new ParseException();
     }
@@ -257,13 +301,13 @@ public class MiniCompilador implements MiniCompiladorConstants {
   static public Token jj_nt;
   static private int jj_ntk;
   static private int jj_gen;
-  static final private int[] jj_la1 = new int[11];
+  static final private int[] jj_la1 = new int[12];
   static private int[] jj_la1_0;
   static {
 	   jj_la1_init_0();
 	}
 	private static void jj_la1_init_0() {
-	   jj_la1_0 = new int[] {0xa90000,0xa90000,0xe000,0x60000,0xa90000,0x600,0x600,0x1800,0x1800,0x60000,0xd000000,};
+	   jj_la1_0 = new int[] {0xa90000,0xa90000,0xe000,0x60000,0xa90000,0x600,0x600,0x1800,0x1800,0x60000,0x60000,0xd000000,};
 	}
 
   /** Constructor with InputStream. */
@@ -284,7 +328,7 @@ public class MiniCompilador implements MiniCompiladorConstants {
 	 token = new Token();
 	 jj_ntk = -1;
 	 jj_gen = 0;
-	 for (int i = 0; i < 11; i++) jj_la1[i] = -1;
+	 for (int i = 0; i < 12; i++) jj_la1[i] = -1;
   }
 
   /** Reinitialise. */
@@ -298,7 +342,7 @@ public class MiniCompilador implements MiniCompiladorConstants {
 	 token = new Token();
 	 jj_ntk = -1;
 	 jj_gen = 0;
-	 for (int i = 0; i < 11; i++) jj_la1[i] = -1;
+	 for (int i = 0; i < 12; i++) jj_la1[i] = -1;
   }
 
   /** Constructor. */
@@ -315,7 +359,7 @@ public class MiniCompilador implements MiniCompiladorConstants {
 	 token = new Token();
 	 jj_ntk = -1;
 	 jj_gen = 0;
-	 for (int i = 0; i < 11; i++) jj_la1[i] = -1;
+	 for (int i = 0; i < 12; i++) jj_la1[i] = -1;
   }
 
   /** Reinitialise. */
@@ -333,7 +377,7 @@ public class MiniCompilador implements MiniCompiladorConstants {
 	 token = new Token();
 	 jj_ntk = -1;
 	 jj_gen = 0;
-	 for (int i = 0; i < 11; i++) jj_la1[i] = -1;
+	 for (int i = 0; i < 12; i++) jj_la1[i] = -1;
   }
 
   /** Constructor with generated Token Manager. */
@@ -349,7 +393,7 @@ public class MiniCompilador implements MiniCompiladorConstants {
 	 token = new Token();
 	 jj_ntk = -1;
 	 jj_gen = 0;
-	 for (int i = 0; i < 11; i++) jj_la1[i] = -1;
+	 for (int i = 0; i < 12; i++) jj_la1[i] = -1;
   }
 
   /** Reinitialise. */
@@ -358,7 +402,7 @@ public class MiniCompilador implements MiniCompiladorConstants {
 	 token = new Token();
 	 jj_ntk = -1;
 	 jj_gen = 0;
-	 for (int i = 0; i < 11; i++) jj_la1[i] = -1;
+	 for (int i = 0; i < 12; i++) jj_la1[i] = -1;
   }
 
   static private Token jj_consume_token(int kind) throws ParseException {
@@ -414,7 +458,7 @@ public class MiniCompilador implements MiniCompiladorConstants {
 	   la1tokens[jj_kind] = true;
 	   jj_kind = -1;
 	 }
-	 for (int i = 0; i < 11; i++) {
+	 for (int i = 0; i < 12; i++) {
 	   if (jj_la1[i] == jj_gen) {
 		 for (int j = 0; j < 32; j++) {
 		   if ((jj_la1_0[i] & (1<<j)) != 0) {
