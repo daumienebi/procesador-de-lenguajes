@@ -117,13 +117,21 @@ void Asigna():{
     // Declaro tokenes para almacenar el tipo de operacion e id
     Token tkTipoOp;
     Token tkId;
+    String codigoExpr = ""; // Para lo que nos devuelve Expr
 }
 {
-    <ASIGNAR> Expr() (tkTipoOp = <IGUAL>| tkTipoOp = <MAS_IGUAL> | tkTipoOp = <MENOS_IGUAL>)
+    <ASIGNAR>
+    codigoExpr = Expr() (tkTipoOp = <IGUAL>| tkTipoOp = <MAS_IGUAL> | tkTipoOp = <MENOS_IGUAL>)
               tkId = <ID>
               {
                 System.out.println("\tvalori " + tkId.image);
 
+                //Imprimimos lo que nos devolvió expr, pero tratamos de
+                // imprimir el valord primero
+                if(tkTipoOp.image.equals(":+>") || tkTipoOp.image.equals(":->")){
+                    System.out.println("\tvalord " + tkId.image);
+                }
+                System.out.print(codigoExpr);
                 // Ahora pasamos a la parte de asignar
                 if(tkTipoOp.image.equals(":+>")){
                     System.out.println("\tsum");
@@ -138,28 +146,36 @@ void Asigna():{
 void Condicional():
 {
     int lblFalse = getNextNumber();
-    int lblFinal = getNextNumber(); // puede que no haya otra condicion entonces seria el mismo LBL
+    int lblFinal = 0; // puede que no haya otra condicion entonces seria el mismo LBL
     boolean existeElse = false;
+    String codCondicion = "";
 }
 {
     // Que sentido tiene esto?
     //<SI> Expr() Bloque()( ElseRep() | Bloque())
     // Los [] indica que esa ultima parte podria no aparecer
-    <SI> {System.out.println("\tsifalsovea LBL" + lblFalse);}
-    Expr() Bloque()
+    <SI> codCondicion = Expr()
+    {
+        // Imprimimos la condicion
+        System.out.print(codCondicion);
+        // Imprimimos el salto
+        System.out.println("\tsifalsovea LBL" + lblFalse);
+    }
+    Bloque()
     [
-
-    {System.out.println("\tvea LBL" + lblFinal);
+    {
+     // Obtenemos la etiqueta ahora porque lo necesitamos. Asi evitamos conteos raros
+     lblFinal = getNextNumber();
+     System.out.println("\tvea LBL" + lblFinal);
      System.out.println("LBL" + lblFalse);
     }
     ElseRep(lblFinal) {existeElse = true;}
-
     ] {
         // Si no hubo un else
         if(!existeElse){
-            System.out.println("\tvea LBL" + lblFinal);
+            System.out.println("LBL" + lblFalse);
         }else{
-            System.out.println("vea LBL" + lblFalse);
+            System.out.println("LBL" + lblFinal);
         }
     }
 }
@@ -167,11 +183,19 @@ void Condicional():
 void Bucle():
 {
     int lblInicio = getNextNumber();
+    String codCondicion = "";
 }
 {
-    <BUCLE> {System.out.println("LBL " + lblInicio);}
+    <BUCLE> {System.out.println("LBL" + lblInicio);}
     Bloque()
-    <MIENTRAS> Expr() {System.out.println("\tsiciertovea LBL" + lblInicio);}
+    <MIENTRAS>
+    codCondicion = Expr()
+    {
+        // Imprimimos la condicion
+        System.out.print(codCondicion);
+        // Imprimimos el salto
+        System.out.println("\tsiciertovea LBL" + lblInicio);
+    }
 }
 
 void Bloque():{}
@@ -179,41 +203,64 @@ void Bloque():{}
     <INICIO> ( Sentencia() )+ <FIN>
 }
 
-void Expr(): {}
+String Expr():
 {
-    Mexpr() [ <MAS> Expr() {System.out.println("\tsum");}
-    |         <MENOS> Expr() {System.out.println("\tsub");}
-            ]
+    String codIzq = "";
+    String codDer = "";
+}
+{
+    codIzq = Mexpr()
+    ( <MAS> codDer = Mexpr() { codIzq = codIzq + codDer + "\tsum\n"; }
+    | <MENOS> codDer = Mexpr() { codIzq = codIzq + codDer + "\tsub\n"; }
+    )*
+    { return codIzq; } // porque puede que no entre en la zona de sum y sub
     //Mexpr() ( <MAS> Expr() | <MENOS> Expr()) | Mexpr()
 }
 
 // Este Mexpr sirve para diferenciar entre la expresión normal y esta que
 // incluye las multiplicaciones y divisiones
-void Mexpr(): {}
+String Mexpr():
 {
-    Valor() [ <DIVIDIR> Mexpr() {System.out.println("\tdiv");}
-    |         <MULTIPLICACION> Mexpr() {System.out.println("\tmul");}]
+    String codIzq = "";
+    String codDer = "";
+}
+{
+    codIzq = Valor()
+    ( <DIVIDIR> codDer = Valor() {codIzq = codIzq + codDer + "\tdiv\n";}
+    | <MULTIPLICACION> codDer = Valor() {codIzq = codIzq + codDer + "\tmul\n";}
+    )*
+    { return codIzq; } // porque puede que no entre en la zona de div y mul
 }
 
 void ElseRep(int lblFinal):
 {
-    int lblFalse = getNextNumber();
+    int lblFalse = 0;
+    String codCondicion = "";
 }
 {
     <SINO> Bloque()
-|   <SINOSI> {System.out.println("\tsifalsovea LBL" + lblFalse);}
-    Expr() Bloque()
+|   <SINOSI> {lblFalse = getNextNumber();} // necesitamos la etiqueta si entra aqui
+    codCondicion = Expr()
+    {
+        // Imprimir condicon
+        System.out.print(codCondicion);
+        //Imprimir salto
+        System.out.println("\tsifalsovea LBL" + lblFalse);
+    }
+    Bloque()
     {System.out.println("\tvea LBL" + lblFinal);
      System.out.println("LBL" + lblFalse);
     }
     [ ElseRep(lblFinal) ] // Puede no aparecer
 }
 
-void Valor(): {
+String Valor(): {
     Token tk;
+    String codExpr = "";
 }
 {
-    tk = <ID> {System.out.println("\tvalord " + tk.image);}
-|   tk = <NUM> {System.out.println("\tmete " + tk.image);}
-|   <PAREN_A> Expr() <PAREN_C>
+    tk = <ID> {return "\tvalord " + tk.image + "\n";}
+|   tk = <NUM> {return "\tmete " + tk.image + "\n" ;}
+|   <PAREN_A> codExpr = Expr() <PAREN_C>
+    { return codExpr; }
 }
